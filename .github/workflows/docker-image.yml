@@ -1,0 +1,133 @@
+name: Multi-Platform Docker Build (x64 & arm64)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 支持手动触发
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 设置 QEMU (用于跨平台构建)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      # 3. 设置 Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      # 4. 登录到 GitHub Container Registry
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 5. 提取元数据 (标签等)
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      # 6. 准备环境文件 (模拟本地部署步骤)
+      - name: Prepare environment files
+        run: |
+          # 复制环境模板
+          if [ -f .env.template ]; then
+            cp .env.template .env
+            echo "Created .env from template"
+          else
+            echo "Warning: .env.template not found"
+          fi
+          
+          # 创建必要的目录和文件
+          mkdir -p ./files
+          touch ./files/allow-postgres14-upgrade
+          echo "Created ./files/allow-postgres14-upgrade"
+          
+          # 显示目录结构
+          ls -la
+          ls -la ./files/ 2>/dev/null || echo "No files directory"
+
+      # 7. 多平台构建并推送镜像
+      - name: Build and push Docker image (Multi-platform)
+        uses: docker/bake-action@v4
+        with:
+          files: |
+            ./docker-compose.yml
+            ${{ steps.meta.outputs.bake-file }}
+          targets: default
+          push: true
+          set: |
+            *.platform=linux/amd64,linux/arm64
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+
+      # 8. 替代方案：如果上面的 bake 不适用，使用 docker-compose buildx 构建
+      # 注意：这一步仅构建，不运行容器（CI 环境通常不需要运行）
+      - name: Build images with docker compose (Alternative)
+        if: failure()  # 如果上一步失败，尝试这个
+        run: |
+          docker compose build --no-cache
+
+      # 9. 验证镜像 (查看构建结果)
+      - name: Inspect built images
+        run: |
+          echo "=== 构建的镜像列表 ==="
+          docker images | grep ${{ env.IMAGE_NAME }} || echo "使用默认命名空间"
+          docker images
+          
+          echo "=== 验证多平台支持 ==="
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest || true
+
+      # 10. 可选：在 CI 中测试部署 (如果需要)
+      - name: Test deployment (Optional)
+        if: github.event_name == 'pull_request'  # 仅在 PR 时测试
+        run: |
+          echo "Starting services for testing..."
+          docker compose up -d --wait
+          
+          echo "Waiting for services to be healthy..."
+          sleep 30
+          
+          echo "=== 容器状态 ==="
+          docker compose ps
+          
+          echo "=== 容器日志 ==="
+          docker compose logs --tail=50
+          
+          # 清理
+          docker compose down
+
+      # 11. 输出摘要
+      - name: Build Summary
+        run: |
+          echo "✅ 多平台构建完成 (linux/amd64, linux/arm64)"
+          echo "📦 镜像地址: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "🏷️  标签: ${{ steps.meta.outputs.tags }}"
