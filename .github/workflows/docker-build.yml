@@ -35,6 +35,8 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -85,6 +87,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -135,6 +139,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Create allow-postgres14-upgrade file
         run: touch ./files/allow-postgres14-upgrade
@@ -177,7 +183,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # 构建 Service 镜像（依赖 submodules，最复杂）
+  # 构建 Service 镜像
   build-service:
     runs-on: ubuntu-latest
     permissions:
@@ -189,6 +195,8 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0          # 关键：拉取完整历史
+          fetch-tags: true      # 关键：拉取所有标签
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -240,6 +248,8 @@ jobs:
         with:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0          # 关键：拉取完整历史
+          fetch-tags: true      # 关键：拉取所有标签
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -290,6 +300,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
