@@ -56,7 +56,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-secrets
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/secrets
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -108,7 +108,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-postgres14
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/postgres14
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -163,7 +163,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-postgres-upgrade
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/postgres-upgrade
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -216,7 +216,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-service
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/service
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -269,7 +269,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-nginx
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/nginx
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -321,7 +321,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/central-enketo
+          images: ${{ env.REGISTRY }}/${{ env.REPO_OWNER }}/enketo
           tags: |
             type=ref,event=branch
             type=ref,event=pr
