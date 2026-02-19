@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        image: [nginx, service]
+        image: [enketo, nginx, postgres-upgrade, postgres14, secrets, service]
 
     steps:
       - name: Checkout repository
