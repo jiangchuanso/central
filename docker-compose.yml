@@ -112,6 +112,7 @@ services:
   pyxform:
     image: ghcr.io/getodk/pyxform-http:v4.2.0
     restart: unless-stopped
+
   secrets:
     volumes:
       - secrets:/etc/secrets
